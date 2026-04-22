@@ -1,0 +1,32 @@
+#! /bin/bash
+
+# This is the link we will scrape
+link="10.0.17.6/Courses2026SP.html"
+
+# get it with curl and tell curl not to give errors
+fullPage=$(curl -sL "$link")
+
+# Utilizing xmlstarlet tool to extract table from the page
+toolOutput=$(echo "$fullPage" | \
+# formats and fixes an html file, and redirects errors to dev/null
+xmlstarlet format --html --recover 2>/dev/null | \
+#  copy-of does a deep copy unlike value-of.
+xmlstarlet select --template --copy-of \
+"//html//body//div//table//tbody//tr")
+
+# Processing HTML with sed
+# 1- Replacing every </tr> with a line break
+echo "$toolOutput" | sed 's/<\/tr>/\n/g' | \
+                     sed -e 's/&amp;//g' | \
+                     sed -e 's/<tr>//g' | \
+                     sed -e 's/<td[^>]*>//g' | \
+                     sed -e 's/<\/td>/;/g' | \
+                     sed -e 's/<[/\]\{0,1\}a[^>]*>//g' | \
+                     sed -e 's/<[/\]\{0,1\}nobr>//g' \
+		      > courses.txt
+
+
+
+
+
+
